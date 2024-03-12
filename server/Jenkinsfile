@@ -8,7 +8,9 @@ pipeline {
         }
         stage("Build image") {
             steps {
-                sh "./build.sh"
+                dir('server') {
+                    sh "./build.sh"
+                }
             }
         }
     }
