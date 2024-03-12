@@ -76,7 +76,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
 
 
 if __name__ == "__main__":
-    HOST, PORT = "0.0.0.0", 5000
+    HOST, PORT = "0.0.0.0", 5001
     players = {}
 
     with GameServer((HOST, PORT), TCPHandler, players) as server:
