@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage("Test") {
             steps {
-                echo "Test test test."
+                echo "$(whoami) is running this job"
             }
         }
         stage("Build image") {
