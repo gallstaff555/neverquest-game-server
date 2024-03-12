@@ -3,7 +3,8 @@ pipeline {
     stages {
         stage("Test") {
             steps {
-                echo "$(whoami) is running this job"
+                def user = sh(script: 'whoami', returnStdout: true).trim()
+                echo "${user} is running this job"
             }
         }
         stage("Build image") {
