@@ -21,14 +21,19 @@ pipeline {
                 script {
                     def ACCOUNT_ID = sh(returnStdout: true, script: 'aws sts get-caller-identity --query "Account" --output text').trim()
                     env.ACCOUNT_ID = ACCOUNT_ID
-                    sh "docker tag neverquest-server:latest ${env.ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com/neverquest-server:latest"
+                    env.IMAGE_NAME = "neverquest-server"
+                    env.REGION = "us-west-2"
+                    sh "docker tag ${env.IMAGE_NAME}:latest ${env.ACCOUNT_ID}.dkr.ecr.${env.REGION}.amazonaws.com/${env.IMAGE_NAME}:latest"
                 }
             }
         }
         stage("Push image to ECR") {
             steps {
                 script {
-                    sh "docker push ${env.ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com/neverquest-server:latest"
+                    sh "aws ecr get-login-password --region ${env.REGION} | docker login --username AWS --password-stdin ${env.ACCOUNT_ID}.dkr.ecr.${env.REGION}.amazonaws.com"
+                }
+                script {
+                    sh "docker push ${env.ACCOUNT_ID}.dkr.ecr.${env.REGION}.amazonaws.com/${env.IMAGE_NAME}:latest"
                 }
             }
         }
