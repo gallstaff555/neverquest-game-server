@@ -16,5 +16,13 @@ pipeline {
                 }
             }
         }
+        stage("Re-tag image") {
+            steps {
+                script {
+                    def ACCOUNT_ID = sh(returnStdout: true, script: 'aws sts get-caller-identity --query "Account" --output text').trim()
+                    docker tag neverquest-server:latest ${ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com/neverquest-server:latest
+                }
+            }
+        }
     }
 }
