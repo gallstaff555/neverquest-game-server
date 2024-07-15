@@ -6,7 +6,6 @@ from player_service.player_connection import PlayerConnection, TCPHandler
 class DataProcessorThread(threading.Thread):
     def __init__(self, r):
         super().__init__()
-        # TODO should this be daemon thread?
 
 
     def run(self):

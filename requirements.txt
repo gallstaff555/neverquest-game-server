@@ -1,1 +1,7 @@
 redis
+boto3
+pyjwt
+jsonify
+flask
+requests
+SQLAlchemy
