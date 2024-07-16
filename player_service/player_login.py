@@ -14,7 +14,8 @@ def refresh():
     decoded_token = token.verify_jwt(id_token)
     if decoded_token is not None:
         # TODO return list of characters instead of token values
-        return jsonify(decoded_token), 200
+        characters = {"name": ["gallstaff", "nomolos"]}
+        return jsonify(characters), 200
     else:
         return None, 500
 
