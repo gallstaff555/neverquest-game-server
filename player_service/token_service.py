@@ -5,9 +5,6 @@ import boto3, requests, jwt, json
 with open('secrets.json', 'r') as file:
     data = json.load(file)
 
-#USER_POOL_ID='us-west-2_tcCkkrnME'
-#REGION='us-west-2'
-#AUDIENCE='5k67sb7v1d0erb46fjv8qojrlo'
 USER_POOL_ID = data.get('user_pool_id')
 REGION = data.get('region')
 AUDIENCE = data.get('audience')
