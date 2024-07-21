@@ -3,3 +3,5 @@ player_service/secrets.json
 .venv/lib/
 .venv/bin/
 .venv/include/
+neverquest.db
+

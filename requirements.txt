@@ -4,4 +4,4 @@ pyjwt
 jsonify
 flask
 requests
-SQLAlchemy
+

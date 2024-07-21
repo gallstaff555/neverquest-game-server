@@ -5,6 +5,8 @@ import boto3, requests, jwt, json
 with open('secrets.json', 'r') as file:
     data = json.load(file)
 
+#https://cognito-idp.us-west-2.amazonaws.com/us-west-2_tcCkkrnME/.well-known/jwks.json
+
 USER_POOL_ID = data.get('user_pool_id')
 REGION = data.get('region')
 AUDIENCE = data.get('audience')
@@ -15,11 +17,13 @@ class TokenService():
         self.client = boto3.client('cognito-idp', region_name=REGION)
     
     def refresh_public_key(self):
-        response = self.client.describe_user_pool(UserPoolId=USER_POOL_ID)
-        jwks_uri = f'https://cognito-idp.{REGION}.amazonaws.com/{USER_POOL_ID}/.well-known/jwks.json' 
-        response = requests.get(jwks_uri)
-        print(response)
-        return response.json()
+        try:
+            response = self.client.describe_user_pool(UserPoolId=USER_POOL_ID)
+            jwks_uri = f'https://cognito-idp.{REGION}.amazonaws.com/{USER_POOL_ID}/.well-known/jwks.json' 
+            response = requests.get(jwks_uri)
+            return response.json()
+        except Exception as e: 
+            print(f"\nError getting public key due to exception {e}.\nCheck AWS credentials are valid.")
     
     def verify_jwt(self, id_token):
         try:
@@ -33,13 +37,13 @@ class TokenService():
         print(f"\njwks: {jwks}\n")
 
         for key in jwks['keys']:
-            print(f"\nkey: {key}\n")
+            #print(f"\nkey: {key}\n")
             if key['kid'] == header['kid']:
                 print("keys matched!")
                 public_key = jwt.algorithms.RSAAlgorithm.from_jwk(key)
                 break
             else:
-                print("kid did not match :(")
+                print("kid did not match.")
 
         if not public_key:
             raise ValueError('Unable to find public key for verification.')

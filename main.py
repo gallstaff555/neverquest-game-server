@@ -3,7 +3,7 @@
 import threading, redis, os, time
 from player_service.player_connection import PlayerConnection, TCPHandler
 
-class DataProcessorThread(threading.Thread):
+class PersistentLocationThread(threading.Thread):
     def __init__(self, r):
         super().__init__()
 
@@ -23,7 +23,7 @@ class DataProcessorThread(threading.Thread):
 if __name__ == "__main__":
 
     REDIS_HOST, REDIS_PORT = 'localhost', 6379
-    TCP_HOST, TCP_PORT = "0.0.0.0", 5000
+    TCP_HOST, TCP_PORT = "0.0.0.0", 5001
 
     try:
         r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0, decode_responses=True)
@@ -34,13 +34,13 @@ if __name__ == "__main__":
         os.sys("exit")
 
     try: 
-        data_processor_thread = DataProcessorThread(r)
-        data_processor_thread.start()
-        print("Data process thread created.")
+        persistent_location_thread = PersistentLocationThread(r)
+        persistent_location_thread.start()
+        print("Persistent location thread created.")
         player_thread = threading.Thread(target=PlayerConnection((TCP_HOST, TCP_PORT), TCPHandler, r).serve_forever)
         player_thread.start()
-        print("Player position thread created.")
-        print("Game server started.")
+        print(f"Persistent player position thread created. Updating redis on port {REDIS_PORT}.")
+        print(f"Game server started on port {TCP_PORT}.")
     except Exception as e:
         print(f"Error occured while initializing game server threads: {e}")
 

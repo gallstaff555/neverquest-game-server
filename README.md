@@ -2,6 +2,14 @@
 python3 -m venv .venv
 source .venv/bin/activate
 
+# install redis testing
+brew install redis
+brew service start redis 
+redis-cli ping
+
+# set up database
+sqlite3 neverquest.db < database/create_tables.sql
+
 # TODO
 Add configuration file with hosts, ports, and timer values 
 Work on world service to store game map and fixed objects
