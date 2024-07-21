@@ -5,7 +5,7 @@ import boto3, requests, jwt, json
 with open('secrets.json', 'r') as file:
     data = json.load(file)
 
-#https://cognito-idp.us-west-2.amazonaws.com/us-west-2_tcCkkrnME/.well-known/jwks.json
+debug=False
 
 USER_POOL_ID = data.get('user_pool_id')
 REGION = data.get('region')
@@ -37,9 +37,11 @@ class TokenService():
         print(f"\njwks: {jwks}\n")
 
         for key in jwks['keys']:
-            #print(f"\nkey: {key}\n")
+            if debug:
+                print(f"\nkey: {key}\n")
             if key['kid'] == header['kid']:
-                print("keys matched!")
+                if debug:
+                    print("keys matched!")
                 public_key = jwt.algorithms.RSAAlgorithm.from_jwk(key)
                 break
             else:

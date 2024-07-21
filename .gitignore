@@ -4,4 +4,5 @@ player_service/secrets.json
 .venv/bin/
 .venv/include/
 neverquest.db
+player_service/neverquest.db
 
