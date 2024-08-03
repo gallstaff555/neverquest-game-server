@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from sqlalchemy import create_engine, Table, Text, Column, Integer, ForeignKey, event
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker, scoped_session, declarative_base, relationship
 from sqlite3 import Connection as SQLite3Connection
 
@@ -19,15 +20,15 @@ def _set_sqlite_pragma(dbapi_connection, connection_record):
 
 class Users(Base):
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True)
-    user_name = Column(Text)
-    email = Column(Text)
+    id = Column(Integer, primary_key=True, nullable=False)
+    user_name = Column(Text, unique=True, nullable=False)
+    email = Column(Text, nullable=False)
 
 class Characters(Base):
     __tablename__ = "characters"
-    id = Column(Integer, primary_key=True)
-    name = Column(Text)
-    user_id = Column(Integer, ForeignKey('users.id'))
+    id = Column(Integer, primary_key=True, nullable=False)
+    name = Column(Text, unique=True, nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
 
 print("Creating tables that don't yet exist.")
 Base.metadata.create_all(engine)
@@ -55,6 +56,10 @@ class DatabaseManager:
             self.session.commit()
             print(f"[{self.__class__.__name__}] User: {user_name} created successfully")
             return new_user
+        except IntegrityError as e:
+            self.session.rollback()
+            print("User already exists.")
+        
         except Exception as e:
             self.session.rollback()
             print(f"[{self.__class__.__name__}] Error adding user: {user_name} due to exception {e}")

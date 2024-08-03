@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
+import sys
+sys.path.append('..')
 from flask import Flask, jsonify, request
 from token_service import TokenService
-from db_service import DatabaseManager
+from persistence.account_repository import DatabaseManager
 
 tokenService = TokenService()
 db = DatabaseManager()

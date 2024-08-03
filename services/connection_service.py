@@ -2,7 +2,7 @@
 
 import socketserver, json, time, redis, threading
 
-class PlayerConnection(socketserver.TCPServer):
+class ConnectionService(socketserver.TCPServer):
     def __init__(self, server_address, RequestHandlerClass, r):
         super().__init__(server_address, RequestHandlerClass)
         self.players = {} # Store the custom parameter

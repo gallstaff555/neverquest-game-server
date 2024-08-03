@@ -2,7 +2,7 @@
 
 import boto3, requests, jwt, json
 
-with open('secrets.json', 'r') as file:
+with open('../configuration/secrets.json', 'r') as file:
     data = json.load(file)
 
 debug=False

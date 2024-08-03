@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import threading, redis, os, time
-from player_service.player_connection import PlayerConnection, TCPHandler
+from services.connection_service import ConnectionService, TCPHandler
 
 class PersistentLocationThread(threading.Thread):
     def __init__(self, r):
@@ -37,7 +37,7 @@ if __name__ == "__main__":
         persistent_location_thread = PersistentLocationThread(r)
         persistent_location_thread.start()
         print("Persistent location thread created.")
-        player_thread = threading.Thread(target=PlayerConnection((TCP_HOST, TCP_PORT), TCPHandler, r).serve_forever)
+        player_thread = threading.Thread(target=ConnectionService((TCP_HOST, TCP_PORT), TCPHandler, r).serve_forever)
         player_thread.start()
         print(f"Persistent player position thread created. Updating redis on port {REDIS_PORT}.")
         print(f"Game server started on port {TCP_PORT}.")
