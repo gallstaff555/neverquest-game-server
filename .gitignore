@@ -1,8 +1,6 @@
 *.pyc
-player_service/secrets.json
 .venv/lib/
 .venv/bin/
 .venv/include/
-neverquest.db
-player_service/neverquest.db
-
+persistence/neverquest.db
+configuration/secrets.json
