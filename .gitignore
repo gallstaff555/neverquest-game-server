@@ -4,3 +4,4 @@
 .venv/include/
 persistence/neverquest.db
 configuration/secrets.json
+*/secrets.json
