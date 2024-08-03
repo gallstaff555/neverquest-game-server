@@ -36,9 +36,6 @@ class DatabaseManager:
     def __init__(self):
         self.session = session_factory()
 
-
-
-
     def get_user_id(self, user_name, email):
         try:
             user = self.session.query(Users).filter(Users.user_name == user_name).first()
@@ -47,7 +44,7 @@ class DatabaseManager:
             return user.id
         except Exception as e:
             self.session.rollback()
-            print(f"Error retrieving account: {user_name} due to exception {e}")
+            print(f"[{self.__class__.__name__}] Error retrieving account: {user_name} due to exception {e}")
         finally:
             self.session.close()
 
@@ -56,11 +53,11 @@ class DatabaseManager:
             new_user = Users(user_name=user_name, email=email)
             self.session.add(new_user)
             self.session.commit()
-            print(f"User: {user_name} created successfully")
+            print(f"[{self.__class__.__name__}] User: {user_name} created successfully")
             return new_user
         except Exception as e:
             self.session.rollback()
-            print(f"Error adding user: {user_name} due to exception {e}")
+            print(f"[{self.__class__.__name__}] Error adding user: {user_name} due to exception {e}")
         finally:
             self.session.close()
 
@@ -74,7 +71,7 @@ class DatabaseManager:
                 character_list.append(character.name)
             return character_list
         except Exception as e:
-            print(f"Could not get character name due to exception {e}")
+            print(f"[{self.__class__.__name__}] Could not get character name due to exception {e}")
         finally:
             self.session.close()
 
@@ -85,42 +82,21 @@ class DatabaseManager:
             self.session.add(new_character)
             self.session.commit()
         except Exception as e:
-            print(f"Could not add new character due to exception {e}")
+            print(f"[{self.__class__.__name__}] Could not add new character due to exception {e}")
         finally:
             self.session.close()
 
-
-
-
-
-
-
-
-# import sqlite3, threading
-
-# DB = '../neverquest.db'
-
-# class DBService:
-
-#     def getAccountByName(self, accountName):
-#         print("Getting account.")
-#         conn = sqlite3.connect(DB)
-#         cursor = conn.cursor()
-#         res = cursor.execute('SELECT id FROM user_account WHERE account_name = (?)', (accountName,))
-#         conn.commit()
-#         accountId = res.fetchone()
-#         if accountId is None:
-#             print("Query returned no results")
-#         else:
-#             print(accountId)
-#         print("Closing connection.")
-#         conn.close()
-
-#     def createNewAccount():
-
-
-
-# if __name__ == '__main__':
-#     print('asdf')
-#     db = DBService()
-#     db.getAccountByName('asdf')
+    def delete_character(self, user_id, delete_char_name):
+        try:
+            delete_character = self.session.query(Characters).filter_by(name=delete_char_name, user_id=user_id).first()
+            if delete_character:
+                print(f"[{self.__class__.__name__}] Attempting to delete character {delete_char_name}.")
+                self.session.delete(delete_character)
+                self.session.commit()
+                print(f"[{self.__class__.__name__}] Delete character {delete_char_name} successful.")
+            else:
+                print(f"[{self.__class__.__name__}] Character {delete_char_name} not found and won't be deleted.")
+        except Exception as e:
+            print(f"[{self.__class__.__name__}] Could not delete character {delete_char_name} due to {e}")
+        finally:
+            self.session.close()

@@ -37,9 +37,7 @@ def create_character():
             # make new character using decoded_token['cognito:username']
             add_character(decoded_token['cognito:username'], decoded_token['email'], new_char_name)
             # return list of all character belonging to account decoded_token['cognito:username']
-
             my_characters = get_character_names(decoded_token['cognito:username'], decoded_token['email'])
-
             print(f"\nMy chars: {my_characters}")
             if my_characters is None:
                 print("Returning None.")
@@ -52,20 +50,34 @@ def create_character():
     except Exception as e:
         print(f"Exception raised while adding character name: {e}")
 
-
-
-def decode_token(request):
+@app.route('/game/character', methods=['DELETE'])
+def delete_character():
+    decoded_token = decode_token(request)
     try:
-        data = request.get_json()
-        id_token = data.get('IdToken')
-        if debug:
-            print(f"Id token: {id_token}")
-        decoded_token = tokenService.verify_jwt(id_token)
-        print(f"Decoded token: {decoded_token}")
-        return decoded_token
+        if decoded_token is not None:
+            data = request.get_json()
+            delete_char_name = data.get('CharName')
+            my_characters = get_character_names(decoded_token['cognito:username'], decoded_token['email'])
+            if delete_char_name not in my_characters or my_characters is None:
+                print(f"Character name {delete_char_name} not found.")
+                return None, 400
+            else:
+                delete_character_helper(decoded_token['cognito:username'], decoded_token['email'], delete_char_name)
+                result = get_character_names(decoded_token['cognito:username'], decoded_token['email'])
+                status_code = 200 if len(result) != len(my_characters) else 500
+                return jsonify(result), status_code
+        else:
+            print(f"Error with auth token. Unable to delete character {delete_char_name}")
+            return 400
     except Exception as e:
-        print(f"Exception raised during token decoding: {e}")
+        print(f"Error deleting character {delete_char_name} due to {e}")
 
+def delete_character_helper(user_id, email, delete_char_name):
+    id = get_user_id(user_id, email)
+    try:
+        db.delete_character(id, delete_char_name)
+    except Exception as e:
+        print(f"Error deleting character {delete_char_name}")
 
 def get_character_names(user, email):
     id = get_user_id(user, email)
@@ -87,6 +99,17 @@ def add_character(user, email, new_char_name):
     except Exception as e:
         print(f"Error adding new character {new_char_name} due to exception {e}")
 
+def decode_token(request):
+    try:
+        data = request.get_json()
+        id_token = data.get('IdToken')
+        if debug:
+            print(f"Id token: {id_token}")
+        decoded_token = tokenService.verify_jwt(id_token)
+        print(f"Decoded token: {decoded_token}")
+        return decoded_token
+    except Exception as e:
+        print(f"Exception raised during token decoding: {e}")
 
 # For testing. Generally flask server will be started from main thread
 if __name__ == '__main__':
