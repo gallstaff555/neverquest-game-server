@@ -35,18 +35,20 @@ def create_character():
         if decoded_token is not None:
             data = request.get_json()
             new_char_name = data.get('NewCharName')
-            print(f"\nNew char name: {new_char_name}")
-            # make new character using decoded_token['cognito:username']
-            add_character(decoded_token['cognito:username'], decoded_token['email'], new_char_name)
-            # return list of all character belonging to account decoded_token['cognito:username']
-            my_characters = get_character_names(decoded_token['cognito:username'], decoded_token['email'])
-            print(f"\nMy chars: {my_characters}")
-            if my_characters is None:
-                print("Returning None.")
-                return jsonify({"name": []}), 404
+            print(f"New char name: {new_char_name}")
+            add_char_result = add_character(decoded_token['cognito:username'], decoded_token['email'], new_char_name)
+            print(f"char res type: {type(add_char_result)}")
+            characters_list = get_character_names(decoded_token['cognito:username'], decoded_token['email'])
+            print(f"Result: {add_char_result}")
+            if characters_list is None or add_char_result is None:
+                print("No characters found or some other error occurred.")
+                return jsonify({"name": [], "error": "Internal server error. No characters found"}), 500
+            if 'error' in add_char_result:
+                error_result = {"name": [characters_list], "error": add_char_result['error']}
+                return jsonify(error_result), 500
             else:
-                result = {"name": [my_characters]}
-                return jsonify(result), 200
+                characters_list = {"name": [characters_list]}
+                return jsonify(characters_list), 200
         else:
             return jsonify({"name": []}), 500
     except Exception as e:
@@ -97,9 +99,13 @@ def get_user_id(user, email):
 def add_character(user, email, new_char_name):
     try:
         user_id = get_user_id(user, email)
-        db.add_character(user_id, new_char_name)
+        result = db.add_character(user_id, new_char_name)
+        print(f"\n\nResult is {result}")
     except Exception as e:
         print(f"Error adding new character {new_char_name} due to exception {e}")
+        result = None
+    finally:
+        return result
 
 def decode_token(request):
     try:
@@ -117,13 +123,3 @@ def decode_token(request):
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8082, debug=True)
 
-# get public key from Cognito
-# store time since public key last refreshed
-
-# listen for requests from client
-# refresh public key if needed
-# validate request
-# extract user email 
-
-# if new login, add entry to database
-# if existing user, fetch user's character names 
