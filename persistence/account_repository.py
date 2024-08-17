@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker, scoped_session, declarative_base, relationship
 from sqlite3 import Connection as SQLite3Connection
 
-db_file = '../persistence/neverquest.db'
+db_file = 'persistence/neverquest.db'
 db_location = f'sqlite:///{db_file}'
 engine = create_engine(db_location, pool_size = 5, max_overflow = 10, echo=True)
 Session = sessionmaker(bind=engine)

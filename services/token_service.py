@@ -2,7 +2,7 @@
 
 import boto3, requests, jwt, json
 
-with open('../configuration/secrets.json', 'r') as file:
+with open('configuration/secrets.json', 'r') as file:
     data = json.load(file)
 
 debug=False
@@ -69,5 +69,14 @@ class TokenService():
                 return None 
             
 
-     
+    def decode_token(self, data):
+        try:
+            id_token = data.get('IdToken')
+            if debug:
+                print(f"Id token: {id_token}")
+            decoded_token = self.verify_jwt(id_token)
+            print(f"Decoded token: {decoded_token}")
+            return decoded_token
+        except Exception as e:
+            print(f"Exception raised during token decoding: {e}")
         
