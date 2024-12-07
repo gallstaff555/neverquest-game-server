@@ -17,8 +17,10 @@ USER $newuser
 
 WORKDIR /home/$newuser
 
-RUN pip3 install eventlet python-socketio
+COPY requirements.txt . 
+COPY main_game_server.py  .
+COPY services/connection_service.py services/
 
-COPY main.py .
+RUN pip3 install -r requirements.txt
 
-CMD ["python3", "main.py"]
+CMD ["python3", "main_game_server.py"]

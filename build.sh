@@ -1,3 +1,4 @@
 #!/bin/bash
 
-sudo docker build . -t neverquest-server:latest
+#docker build . -t neverquest-game-server:latest
+sudo docker build -t neverquest-game-server:latest -f docker/game-server/Dockerfile .

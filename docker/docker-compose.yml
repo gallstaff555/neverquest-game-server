@@ -1,0 +1,21 @@
+version: '3.7'
+
+services:
+  neverquest-game-server:
+    image: neverquest-game-server:latest
+    ports:
+      - "5001:5001"
+    container_name: game-server
+
+  # neverquest-account-server:
+  #   image: neverquest-account-server:latest
+  #   ports:
+  #     - "8082:8082"
+  #   container_name: account-server
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    container_name: redis
+  

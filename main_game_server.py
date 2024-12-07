@@ -22,7 +22,7 @@ class PersistentLocationThread(threading.Thread):
 
 if __name__ == "__main__":
 
-    REDIS_HOST, REDIS_PORT = 'localhost', 6379
+    REDIS_HOST, REDIS_PORT = 'redis', 6379
     TCP_HOST, TCP_PORT = "0.0.0.0", 5001
 
     try:
@@ -31,7 +31,7 @@ if __name__ == "__main__":
             print(f"Redis is running.")
     except:
         print("Error connecting to redis.")
-        os.sys("exit")
+        #os.sys("exit") #sys.exit?
 
     try: 
         persistent_location_thread = PersistentLocationThread(r)
