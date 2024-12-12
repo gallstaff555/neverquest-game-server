@@ -8,7 +8,9 @@ brew service start redis
 redis-cli ping
 
 # set up database
-sqlite3 neverquest.db < database/create_tables.sql
+# this also happens automatically when you run main_account_server.py
+cd persistence/
+sqlite3 neverquest.db < scripts/create_tables.sql
 
 # TODO
 Add configuration file with hosts, ports, and timer values 

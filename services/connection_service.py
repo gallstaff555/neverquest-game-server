@@ -79,7 +79,11 @@ class TCPHandler(socketserver.BaseRequestHandler):
             print(f"Could not find {player_name} in list of players.")
         print(f"Remaining player count: {len(self.server.players)}")
         if self.server.r.exists(player_name):
+            print(f"Deleting {player_name} from redis cache.")
             self.server.r.delete(player_name)
+        else:
+            print(f"Player {player_name} may have disconnected but was not found and removed from redis cache.")
+
 
     def handle_update(self, payload):
         player_name = f"{payload['name']}"

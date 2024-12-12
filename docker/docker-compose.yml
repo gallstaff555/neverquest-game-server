@@ -7,11 +7,11 @@ services:
       - "5001:5001"
     container_name: game-server
 
-  # neverquest-account-server:
-  #   image: neverquest-account-server:latest
-  #   ports:
-  #     - "8082:8082"
-  #   container_name: account-server
+  neverquest-account-server:
+    image: neverquest-account-server:latest
+    ports:
+      - "8082:8082"
+    container_name: account-server
 
   redis:
     image: redis:latest
