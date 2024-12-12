@@ -6,36 +6,33 @@ class ConnectionService(socketserver.TCPServer):
     def __init__(self, server_address, RequestHandlerClass, r):
         super().__init__(server_address, RequestHandlerClass)
         self.players = {} # Store the custom parameter
+        self.players_marked_for_deletion = []
         self.r = r
 
         self.update_redis_thread = threading.Thread(target=self.update_redis, daemon=True)
         self.update_redis_thread.start()
 
-        self.disconnect_check_thread = threading.Thread(target=self.check_for_disconnected_players, daemon=True)
-        self.disconnect_check_thread.start()
 
     def update_redis(self):
         update_timer = 1
         while True:
+            if len(self.players_marked_for_deletion) > 0:
+                self.check_for_disconnected_players()
             for player, value in self.players.items():
                 self.r.set(player, json.dumps(value['pos']))
             time.sleep(update_timer)
             
     def check_for_disconnected_players(self):
-        disconnect_timer = 3
-        while True:
-            player_marked_for_deletion = []
-            current_time = int(time.time())
-            for player in self.players:
-                last_update = int(self.players[player]['last_update'])
-                if current_time - last_update > disconnect_timer:
-                    print(f"{player} has not responded for more than {disconnect_timer} seconds.")
-                    player_marked_for_deletion.append(player)
-            for player in player_marked_for_deletion:
-                if player in self.players:
-                    del self.players[player]
-                    print(f"{player} has been removed from the game.")
-            time.sleep(disconnect_timer)
+        for player in self.players_marked_for_deletion:
+            if player in self.players:
+                del self.players[player]
+                print(f"{player} has been removed from the game.")
+            else:
+                print(f"Player marked for deletion: {player} was not found!")
+            self.r.delete(player)
+            print(f"{player} has been removed from redis cache.")
+        self.players_marked_for_deletion = []
+        print(f"Remaining player count: {len(self.players)}")
 
 # override default handler class so we can use custom parameters
 # use self.server.arg1 to access server data field
@@ -66,24 +63,17 @@ class TCPHandler(socketserver.BaseRequestHandler):
         if not player_name in self.server.players:
             print(f"Player {player_name} connected for first time.")
         self.server.players[player_name] = payload
-        self.server.r.set(player_name, json.dumps(payload['pos']))
+        #self.server.r.set(player_name, json.dumps(payload['pos']))
         print(f"{player_name} connected!")
 
     def handle_disconnect(self, payload):
         player_name = f"{payload['name']}"
         print(f"Player {player_name} wants to disconnect...")
         if player_name in self.server.players:
-            del self.server.players[player_name]
-            print(f"{player_name} disconnected!")
+            self.server.players_marked_for_deletion.append(player_name)
         else:
             print(f"Could not find {player_name} in list of players.")
-        print(f"Remaining player count: {len(self.server.players)}")
-        if self.server.r.exists(player_name):
-            print(f"Deleting {player_name} from redis cache.")
-            self.server.r.delete(player_name)
-        else:
-            print(f"Player {player_name} may have disconnected but was not found and removed from redis cache.")
-
+        
 
     def handle_update(self, payload):
         player_name = f"{payload['name']}"
