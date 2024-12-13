@@ -92,11 +92,12 @@ class DatabaseManager:
         except Exception as e:
             self.session.rollback()
             print(f"[{self.__class__.__name__}] Could not add new character.")
+            print(f"Exception: {e}")
             success = False
-            error = "IntegrityError"
+            error = "AddNewCharacterError"
         finally:
             self.session.close()
-            return {"success": success} if success == True else {"success": success, "error": "IntegrityError"}
+            return {"success": success} if success == True else {"success": success, "error": error}
 
     def delete_character(self, user_id, delete_char_name):
         try:

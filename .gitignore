@@ -10,6 +10,7 @@ env/
 
 persistence/neverquest.db
 configuration/secrets.json
+configuration/credentials
 */secrets.json
 
 .DS_Store

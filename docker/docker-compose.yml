@@ -12,6 +12,10 @@ services:
     ports:
       - "8082:8082"
     container_name: account-server
+    volumes:
+      - type: bind
+        source: ../persistence/neverquest.db 
+        target: /home/admin/persistence/neverquest.db
 
   redis:
     image: redis:latest

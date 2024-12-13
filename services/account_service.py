@@ -35,7 +35,7 @@ class AccountService():
         try:
             user_id = self.get_user_id(user, email)
             result = db.add_character(user_id, new_char_name)
-            print(f"\n\nResult is {result}")
+            print(f"Result is {result}")
         except Exception as e:
             print(f"Error adding new character {new_char_name} due to exception {e}")
             result = None
