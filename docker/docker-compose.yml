@@ -15,7 +15,7 @@ services:
     volumes:
       - type: bind
         source: ../persistence/neverquest.db 
-        target: /home/admin/persistence/neverquest.db
+        target: /home/neverquest/persistence/neverquest.db
 
   redis:
     image: redis:latest

@@ -8,9 +8,9 @@ RUN apt-get update && apt-get install -y \
     net-tools \
     lsof
 
-ENV newuser="neverquest"
+ENV newuser="admin"
 RUN useradd -ms /bin/bash $newuser \
-   && usermod -aG sudo $newuser \
+    && usermod -aG sudo $newuser \
     && echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 USER $newuser
@@ -18,7 +18,7 @@ USER $newuser
 WORKDIR /home/$newuser
 
 COPY docker/game-server/requirements.txt . 
-RUN pip3 install -r requirements.txt --break-system-packages
+RUN pip3 install -r requirements.txt
 
 COPY services/connection_service.py services/
 COPY main_game_server.py  .
