@@ -1,8 +1,0 @@
-version: '3.7'
-
-services:
-  neverquest-server:
-    image: neverquest-server
-    ports:
-      - "5000:5000"
-    container_name: server
