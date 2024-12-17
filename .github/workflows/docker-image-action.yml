@@ -29,5 +29,8 @@ jobs:
         ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
         ECR_REPOSITORY: ${{ secrets.ECR_GAME_SERVER_REPOSITORY }}
       run: |
+        echo "ECR_REGISTRY=${{ secrets.ECR_REGISTRY }}"
+        echo "ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY }}"
         docker build -f docker/game-server/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
