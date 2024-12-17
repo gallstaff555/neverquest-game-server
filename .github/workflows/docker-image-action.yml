@@ -33,9 +33,6 @@ jobs:
         docker build -f docker/game-server/Dockerfile -t $ECR_GAME_SERVER_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_GAME_SERVER_REPOSITORY:$IMAGE_TAG
 
-    - name: Login to Amazon ECR 2
-      uses: aws-actions/amazon-ecr-login@v2
-
     - name: Build and Push Account Server Docker Images
       env:
         ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
