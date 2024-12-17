@@ -20,18 +20,28 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
     
-    - name: Login to Amazon ECR
+    - name: Login to Amazon ECR 1
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Build and Push Docker Images
+    - name: Build and Push Game Server Docker Image
       env:
+        ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
         ECR_GAME_SERVER_REPOSITORY: ${{ secrets.ECR_GAME_SERVER_REPOSITORY }}
-        ECR_ACCOUNT_SERVER_REPOSITORY: ${{ secrets.ECR_ACCOUNT_SERVER_REPOSITORY }}
         IMAGE_TAG: latest
       run: |
         docker build -f docker/game-server/Dockerfile -t $ECR_GAME_SERVER_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_GAME_SERVER_REPOSITORY:$IMAGE_TAG
+
+    - name: Login to Amazon ECR 2
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build and Push Account Server Docker Images
+      env:
+        ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+        ECR_ACCOUNT_SERVER_REPOSITORY: ${{ secrets.ECR_ACCOUNT_SERVER_REPOSITORY }}
+        IMAGE_TAG: latest
+      run: |
         docker build -f docker/account-server/Dockerfile -t $ECR_ACCOUNT_SERVER_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_ACCOUNT_SERVER_REPOSITORY:$IMAGE_TAG
 
