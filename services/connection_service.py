@@ -56,6 +56,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
             else:
                 print("Error with message occurred.")
             result_string = json.dumps(self.server.players)
+            # TODO send NPC location in addition to player info
             self.request.sendall(result_string.encode('utf-8'))
 
     def handle_connection(self, payload):

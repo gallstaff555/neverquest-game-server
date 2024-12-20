@@ -22,4 +22,24 @@ services:
     ports:
       - "6379:6379"
     container_name: redis
+
+  kafka:
+    image: bitnami/kafka:latest
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - advertised.listeners=PLAINTEXT://localhost:9092
+    container_name: kafka
   
+  zookeeper:
+    image: zookeeper:latest
+    ports: 
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    container_name: zookeeper
