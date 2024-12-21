@@ -17,12 +17,15 @@ services:
         source: ../persistence/neverquest.db 
         target: /home/neverquest/persistence/neverquest.db
 
+  # TODO make npc service run in a container and test with kafka container. 
+
   redis:
     image: redis:latest
     ports:
       - "6379:6379"
     container_name: redis
 
+  # TODO set up max storage retention policy
   kafka:
     image: bitnami/kafka:latest
     ports:

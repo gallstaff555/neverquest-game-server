@@ -1,22 +1,28 @@
 #!/usr/bin/env python3 
 
-import threading, time, json
+import threading, time, json, sys
+sys.path.append('../../..')
+from configuration.config import Config 
 from .npc_factory import NPCFactory
 from kafka import KafkaProducer
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 # create NPC
 # update NPC position and status
 # broadcast NPC location to client
 
-
+cfg = Config()
 
 class NPCService(threading.Thread):
     def __init__(self):
         super().__init__()
         self.factory = NPCFactory()
         self.producer = KafkaProducer(
-            bootstrap_servers='localhost:9092',  # Kafka broker address
-            value_serializer=lambda v: json.dumps(v).encode('utf-8'),  # Serialize messages as JSON
-            key_serializer=lambda k: str(k).encode('utf-8')  # Optional: Serialize the key (if needed)
+            bootstrap_servers='localhost:9092'
+            #,  # Kafka broker address
+            #value_serializer=lambda v: json.dumps(v).encode('utf-8'),  # Serialize messages as JSON
+            #key_serializer=lambda k: str(k).encode('utf-8')  # Optional: Serialize the key (if needed)
         )
         self.next_id = 1
         self.npc_list = []
@@ -35,7 +41,13 @@ class NPCService(threading.Thread):
             "action": action
         }
         try:
-            self.producer.send('npc-updates', key='key1', value=json.dumps(message))
+            print(f"sending message to topic: {cfg.NPC_UPDATES_TOPIC}")
+            self.producer.send(
+                cfg.NPC_UPDATES_TOPIC,
+                #key=str(cfg.KAFKA_PARTITION_1).encode('utf-8'),  
+                value=json.dumps(message).encode('utf-8') 
+            )
+            self.producer.flush()
         except Exception as e:
             print(f"Kafka producer error: {e}")
         

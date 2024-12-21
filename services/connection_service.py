@@ -1,17 +1,30 @@
 #!/usr/bin/env python3
 
-import socketserver, json, time, redis, threading
+import socketserver, json, time, threading, sys
+sys.path.append('../../..')
+from configuration.config import Config 
+from kafka import KafkaConsumer
+
+cfg = Config()
 
 class ConnectionService(socketserver.TCPServer):
     def __init__(self, server_address, RequestHandlerClass, r):
         super().__init__(server_address, RequestHandlerClass)
         self.players = {} # Store the custom parameter
         self.players_marked_for_deletion = []
+        self.npcs = {}
         self.r = r
+        self.consumer = KafkaConsumer(cfg.NPC_UPDATES_TOPIC,
+                         group_id=cfg.KAFKA_CONSUMER_GROUP_ID,
+                         bootstrap_servers=['localhost:9092'])
 
         self.update_redis_thread = threading.Thread(target=self.update_redis, daemon=True)
         self.update_redis_thread.start()
+        print("Redis update thread started.")
 
+        self.update_npc_thread = threading.Thread(target=self.update_npcs, daemon=True)
+        self.update_npc_thread.start()
+        print("npc update thread started.")
 
     def update_redis(self):
         update_timer = 1
@@ -21,6 +34,17 @@ class ConnectionService(socketserver.TCPServer):
             for player, value in self.players.items():
                 self.r.set(player, json.dumps(value['pos']))
             time.sleep(update_timer)
+
+    def update_npcs(self):
+        update_timer = 1
+        print("get npc update test")
+        while True:
+            for message in self.consumer:
+                # print("%s:%d:%d: key=%s value=%s" % (message.topic, message.partition, 
+                #                                      message.offset, message.key,message.value))
+                print(json.loads(message))
+            print("Done npc get updates")
+            time.sleep(update_timer)
             
     def check_for_disconnected_players(self):
         for player in self.players_marked_for_deletion:
@@ -29,10 +53,13 @@ class ConnectionService(socketserver.TCPServer):
                 print(f"{player} has been removed from the game.")
             else:
                 print(f"Player marked for deletion: {player} was not found!")
+            # TODO don't delete player, but mark them as offline
             self.r.delete(player)
             print(f"{player} has been removed from redis cache.")
         self.players_marked_for_deletion = []
         print(f"Remaining player count: {len(self.players)}")
+    
+
 
 # override default handler class so we can use custom parameters
 # use self.server.arg1 to access server data field
@@ -75,7 +102,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
         else:
             print(f"Could not find {player_name} in list of players.")
         
-
+    
     def handle_update(self, payload):
         player_name = f"{payload['name']}"
         self.server.players[player_name] = payload

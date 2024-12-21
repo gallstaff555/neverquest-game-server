@@ -2,7 +2,6 @@
 
 import threading, redis, time
 from services.connection_service import ConnectionService, TCPHandler
-from services.game.npc.npc_service import NPCService
 
 class PersistentLocationThread(threading.Thread):
     def __init__(self, r):
@@ -40,9 +39,6 @@ if __name__ == "__main__":
         persistent_location_thread.start()
         print("Persistent location thread created.")
         
-        npc_thread = NPCService()
-        npc_thread.start()
-        print("Starting NPC thread.")
 
         player_thread = threading.Thread(target=ConnectionService((TCP_HOST, TCP_PORT), TCPHandler, r).serve_forever)
         player_thread.start()
