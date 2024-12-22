@@ -16,7 +16,7 @@ class ConnectionService(socketserver.TCPServer):
         self.r = r
         self.consumer = KafkaConsumer(cfg.NPC_UPDATES_TOPIC,
                          group_id=cfg.KAFKA_CONSUMER_GROUP_ID,
-                         bootstrap_servers=['localhost:9092'])
+                         bootstrap_servers=['localhost:29092'])
 
         self.update_redis_thread = threading.Thread(target=self.update_redis, daemon=True)
         self.update_redis_thread.start()
