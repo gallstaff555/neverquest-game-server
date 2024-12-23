@@ -8,6 +8,7 @@
 .venv/include/
 venv/
 env/
+pyvenv.cfg
 
 persistence/neverquest.db
 configuration/secrets.json

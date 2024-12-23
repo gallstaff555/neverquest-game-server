@@ -12,6 +12,8 @@ logging.basicConfig(level=logging.DEBUG)
 # update NPC position and status
 # broadcast NPC location to client
 
+# TODO only update npc info when there is a change or addition
+
 cfg = Config()
 
 class NPCService(threading.Thread):
@@ -44,7 +46,7 @@ class NPCService(threading.Thread):
             print(f"sending message to topic: {cfg.NPC_UPDATES_TOPIC}")
             self.producer.send(
                 cfg.NPC_UPDATES_TOPIC,
-                #key=str(cfg.KAFKA_PARTITION_1).encode('utf-8'),  
+                key=str(cfg.KAFKA_PARTITION_1).encode('utf-8'),  
                 value=json.dumps(message).encode('utf-8') 
             )
             self.producer.flush()
@@ -60,7 +62,6 @@ class NPCService(threading.Thread):
         while(True):
             try:
                 time.sleep(1)
-                print(f"npc: {self.npc_list[0].getId()}")
                 self.publish_npc_update(self.npc_list[0].getId(), self.npc_list[0].getLocation(), "idle")
 
             except Exception as e:

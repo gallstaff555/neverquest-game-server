@@ -37,13 +37,22 @@ class ConnectionService(socketserver.TCPServer):
 
     def update_npcs(self):
         update_timer = 1
-        print("get npc update test")
         while True:
-            for message in self.consumer:
-                # print("%s:%d:%d: key=%s value=%s" % (message.topic, message.partition, 
-                #                                      message.offset, message.key,message.value))
-                print(json.loads(message))
-            print("Done npc get updates")
+            for msg in self.consumer:
+                
+                record_dict = {
+                    'topic': msg.topic,
+                    'partition': msg.partition,
+                    'offset': msg.offset,
+                    'key': msg.key.decode('utf-8') if msg.key else None,
+                    'value': msg.value.decode('utf-8') if msg.value else None
+                }
+
+                # TODO filter message by topic and partition when separating update by world zone
+                npc_id = json.loads(record_dict.get('value')).get('npc_id')
+                npc_value = record_dict.get('value')
+                print(npc_value)
+                self.npcs[npc_id] = npc_value
             time.sleep(update_timer)
             
     def check_for_disconnected_players(self):
@@ -82,16 +91,23 @@ class TCPHandler(socketserver.BaseRequestHandler):
                 self.handle_connection(payload)
             else:
                 print("Error with message occurred.")
-            result_string = json.dumps(self.server.players)
-            # TODO send NPC location in addition to player info
-            self.request.sendall(result_string.encode('utf-8'))
+
+            player_data = json.dumps(self.server.players)
+            npc_data = json.dumps(self.server.npcs)
+
+            players = {}
+            players["players"] = player_data
+            npcs = {}
+            npcs["npcs"] = npc_data
+
+            response = json.dumps([players, npcs])
+            self.request.sendall(response.encode('utf-8'))
 
     def handle_connection(self, payload):
         player_name = f"{payload['name']}"
         if not player_name in self.server.players:
             print(f"Player {player_name} connected for first time.")
         self.server.players[player_name] = payload
-        #self.server.r.set(player_name, json.dumps(payload['pos']))
         print(f"{player_name} connected!")
 
     def handle_disconnect(self, payload):
