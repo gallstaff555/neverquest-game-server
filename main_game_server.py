@@ -2,6 +2,9 @@
 
 import threading, redis, time
 from services.connection_service import ConnectionService, TCPHandler
+from configuration.config import Config
+
+cfg = Config()
 
 class PersistentLocationThread(threading.Thread):
     def __init__(self, r):
@@ -22,12 +25,9 @@ class PersistentLocationThread(threading.Thread):
 
 if __name__ == "__main__":
 
-    REDIS_HOST, REDIS_PORT = 'localhost', 6379
-    #REDIS_HOST, REDIS_PORT = 'redis', 6379
-    TCP_HOST, TCP_PORT = "0.0.0.0", 5001
 
     try:
-        r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0, decode_responses=True)
+        r = redis.Redis(host=cfg.REDIS_HOST, port=cfg.REDIS_PORT, db=0, decode_responses=True)
         if r.ping():
             print(f"Redis is running.")
     except:
@@ -40,10 +40,10 @@ if __name__ == "__main__":
         print("Persistent location thread created.")
         
 
-        player_thread = threading.Thread(target=ConnectionService((TCP_HOST, TCP_PORT), TCPHandler, r).serve_forever)
+        player_thread = threading.Thread(target=ConnectionService((cfg.TCP_HOST, cfg.TCP_PORT), TCPHandler, r).serve_forever)
         player_thread.start()
-        print(f"Persistent player position thread created. Updating redis on port {REDIS_PORT}.")
-        print(f"Game server started on port {TCP_PORT}.")
+        print(f"Persistent player position thread created. Updating redis on port {cfg.REDIS_PORT}.")
+        print(f"Game server started on port {cfg.TCP_PORT}.")
     except Exception as e:
         print(f"Error occured while initializing game server threads: {e}")
 

@@ -11,6 +11,7 @@ class NPC():
     def __init__(self, id, start_location):
         self.id = id
         self.location = start_location
+        self.type = None
         print("Creating a placeholder npc")
         print(f"ID: {self.id}")
         print(f"Start location: {self.location}")
@@ -18,12 +19,16 @@ class NPC():
     def getId(self):
         return self.id
     
+    def getType(self):
+        return self.type
+    
     def getLocation(self):
         return self.location
 
 class Placeholder(NPC):
     def __init__(self, id, start_location):
         super().__init__(id, start_location)
+        self.type = "placeholder"
         print("Creating a placeholder npc")
         print(f"ID: {self.id}")
         print(f"Start location: {self.location}")

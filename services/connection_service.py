@@ -15,8 +15,12 @@ class ConnectionService(socketserver.TCPServer):
         self.npcs = {}
         self.r = r
         self.consumer = KafkaConsumer(cfg.NPC_UPDATES_TOPIC,
-                         group_id=cfg.KAFKA_CONSUMER_GROUP_ID,
-                         bootstrap_servers=['localhost:29092'])
+                        group_id=cfg.KAFKA_CONSUMER_GROUP_ID,
+                        bootstrap_servers=['localhost:29092'],
+                        auto_offset_reset='latest',  # Start from the latest offset
+                        enable_auto_commit=False,   # Don't commit offsets automatically
+                        consumer_timeout_ms=5000    # Stop if no message is received within 5 seconds
+)
 
         self.update_redis_thread = threading.Thread(target=self.update_redis, daemon=True)
         self.update_redis_thread.start()
@@ -37,9 +41,10 @@ class ConnectionService(socketserver.TCPServer):
 
     def update_npcs(self):
         update_timer = 1
+        count = 0
         while True:
             for msg in self.consumer:
-                
+                count = count + 1
                 record_dict = {
                     'topic': msg.topic,
                     'partition': msg.partition,
@@ -53,6 +58,9 @@ class ConnectionService(socketserver.TCPServer):
                 npc_value = record_dict.get('value')
                 print(npc_value)
                 self.npcs[npc_id] = npc_value
+
+                print(f"kafka msg count: {count}")
+
             time.sleep(update_timer)
             
     def check_for_disconnected_players(self):

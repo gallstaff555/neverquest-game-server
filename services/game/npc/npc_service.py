@@ -35,9 +35,10 @@ class NPCService(threading.Thread):
         self.next_id = self.next_id + 1
 
     # TODO update topic if there is a change to NPC to send to client 
-    def publish_npc_update(self, npc_id, location, action):
+    def publish_npc_update(self, npc_id, type, location, action):
         message = {
             "npc_id": npc_id,
+            "type": type,
             "timestamp": int(time.time()),
             "location": location,
             "action": action
@@ -62,7 +63,7 @@ class NPCService(threading.Thread):
         while(True):
             try:
                 time.sleep(1)
-                self.publish_npc_update(self.npc_list[0].getId(), self.npc_list[0].getLocation(), "idle")
+                self.publish_npc_update(self.npc_list[0].getId(), self.npc_list[0].getType(), self.npc_list[0].getLocation(), "idle")
 
             except Exception as e:
                 print(f"Exception raised in npc_service run: {e}")
