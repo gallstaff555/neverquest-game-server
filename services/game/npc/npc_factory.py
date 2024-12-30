@@ -4,6 +4,8 @@ class NPCFactory():
     def create_npc(self, npc_type, id, start_location):
         if npc_type == "placeholder":
             return Placeholder(id, start_location)
+        elif npc_type == "healer":
+            return Healer(id, start_location)
         else:
             raise ValueError("Invalid npc type cannot be created")
 
@@ -33,5 +35,12 @@ class Placeholder(NPC):
         print(f"ID: {self.id}")
         print(f"Start location: {self.location}")
 
+class Healer(NPC):
+    def __init__(self, id, start_location):
+        super().__init__(id, start_location)
+        self.type = "healer"
+        print("Creating a healer npc")
+        print(f"ID: {self.id}")
+        print(f"Start location: {self.location}")
 
     

@@ -30,7 +30,7 @@ class NPCService(threading.Thread):
         self.npc_list = []
 
     def create_npc(self, npc_type):
-        new_npc = self.factory.create_npc(npc_type, self.next_id, (100, 100))
+        new_npc = self.factory.create_npc(npc_type, self.next_id, f"{(150, 150)}") # f"{(100, 100)}"
         self.npc_list.append(new_npc)
         self.next_id = self.next_id + 1
 
@@ -56,7 +56,7 @@ class NPCService(threading.Thread):
         
 
     def setup(self):
-        self.create_npc("placeholder")
+        self.create_npc("healer")
 
     def run(self):
         self.setup()
