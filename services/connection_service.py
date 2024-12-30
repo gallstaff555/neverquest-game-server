@@ -18,8 +18,8 @@ class ConnectionService(socketserver.TCPServer):
                         group_id=cfg.KAFKA_CONSUMER_GROUP_ID,
                         bootstrap_servers=['localhost:29092'],
                         auto_offset_reset='latest',  # Start from the latest offset
-                        enable_auto_commit=False,   # Don't commit offsets automatically
-                        consumer_timeout_ms=5000    # Stop if no message is received within 5 seconds
+                        enable_auto_commit=False     # Don't commit offsets automatically
+                        #consumer_timeout_ms=5000    # Stop if no message is received within 5 seconds
 )
 
         self.update_redis_thread = threading.Thread(target=self.update_redis, daemon=True)
