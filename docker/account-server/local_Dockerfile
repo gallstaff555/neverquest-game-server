@@ -26,25 +26,25 @@ WORKDIR /home/$newuser
 
 # ARM64
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip" \
-    unzip awscliv2.zip \
-    sudo ./aws/install
+        && unzip awscliv2.zip \
+        && sudo ./aws/install 
 
 COPY docker/account-server/requirements.txt .
-RUN pip3 install -r requirements.txt
+RUN pip3 install --break-system-packages -r requirements.txt
 
 COPY configuration/credentials ./.aws/credentials
 RUN sudo chown -R $newuser:$newuser .aws 
 
-RUN mkdir -p persistence/ \
-    touch persistence/neverquest.db
-
 COPY main_account_server.py  .
 COPY configuration/secrets.json configuration/secrets.json
-#COPY persistence/ persistence
-COPY resources/ resources
+COPY resources/account_resource.py resources/account_resource.py
+COPY persistence/account_repository.py persistence/account_repository.py
+COPY persistence/scripts/ persistence/scripts/
 COPY services/account_service.py services/account_service.py
 COPY services/token_service.py services/token_service.py
 
 RUN sudo chown -R ${newuser}:${newuser} .
+
+RUN touch persistence/neverquest.db
 
 CMD ["python3", "-u", "main_account_server.py"]

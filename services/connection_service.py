@@ -16,7 +16,7 @@ class ConnectionService(socketserver.TCPServer):
         self.r = r
         self.consumer = KafkaConsumer(cfg.NPC_UPDATES_TOPIC,
                         group_id=cfg.KAFKA_CONSUMER_GROUP_ID,
-                        bootstrap_servers=['localhost:29092'],
+                        bootstrap_servers=[f'{cfg.BOOTSTRAP_SERVER}:{cfg.BOOTSTRAP_PORT}'],
                         auto_offset_reset='latest',  # Start from the latest offset
                         enable_auto_commit=False     # Don't commit offsets automatically
                         #consumer_timeout_ms=5000    # Stop if no message is received within 5 seconds

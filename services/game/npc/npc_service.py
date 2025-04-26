@@ -21,7 +21,7 @@ class NPCService(threading.Thread):
         super().__init__()
         self.factory = NPCFactory()
         self.producer = KafkaProducer(
-            bootstrap_servers='localhost:29092'
+            bootstrap_servers=f'{cfg.BOOTSTRAP_SERVER}:{cfg.BOOTSTRAP_PORT}'
             #value_serializer=lambda v: json.dumps(v).encode('utf-8'),  # Serialize messages as JSON
             #key_serializer=lambda k: str(k).encode('utf-8')  # Optional: Serialize the key (if needed)
         )
