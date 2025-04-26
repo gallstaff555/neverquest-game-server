@@ -10,8 +10,12 @@ RUN apt-get update && apt-get install -y \
     curl \
     unzip
 
-ENV newuser="admin"
-RUN useradd -ms /bin/bash $newuser \
+ENV newuser="neverquest"
+# make sure server is using id 1005 for neverquest user
+ENV user_id="1005"
+
+RUN groupadd -g $user_id $newuser \
+    && useradd -u $user_id -g $newuser -m $newuser \
     && usermod -aG sudo $newuser \
     && echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 

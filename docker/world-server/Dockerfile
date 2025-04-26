@@ -6,7 +6,9 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     vim \
     net-tools \
-    lsof
+    lsof \
+    curl \
+    unzip
 
 ENV newuser="neverquest"
 RUN useradd -ms /bin/bash $newuser \
@@ -17,11 +19,11 @@ USER $newuser
 
 WORKDIR /home/$newuser
 
-COPY docker/game-server/requirements.txt . 
-RUN pip3 install --break-system-packages -r requirements.txt
+COPY docker/world-server/requirements.txt . 
+RUN pip3 install -r requirements.txt --break-system-packages
 
-COPY services/connection_service.py services/
-COPY main_game_server.py  .
+COPY services/game/npc/ services/game/npc/
+COPY main_world_server.py  .
 COPY configuration/config.py configuration/
 
-CMD ["python3", "-u" ,"main_game_server.py"]
+CMD ["python3", "-u" ,"main_world_server.py"]

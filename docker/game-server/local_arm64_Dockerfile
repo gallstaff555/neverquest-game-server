@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
     net-tools \
     lsof
 
-ENV newuser="admin"
+ENV newuser="neverquest"
 RUN useradd -ms /bin/bash $newuser \
     && usermod -aG sudo $newuser \
     && echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers

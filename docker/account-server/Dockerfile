@@ -15,12 +15,9 @@ ENV newuser="neverquest"
 ENV user_id="1005"
 
 RUN groupadd -g $user_id $newuser \
-   && useradd -u $user_id -g $newuser -m $newuser \
-   && usermod -aG sudo $newuser \
-   && echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-# RUN useradd -ms /bin/bash $newuser \
-#    && usermod -aG sudo $newuser \
-#     && echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+    && useradd -u $user_id -g $newuser -m $newuser \
+    && usermod -aG sudo $newuser \
+    && echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 USER $newuser
 
@@ -39,21 +36,18 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 #     rm awscliv2.zip
 
 COPY docker/account-server/requirements.txt .
-RUN pip3 install -r requirements.txt --break-system-packages
-
-#COPY configuration/credentials ./.aws/credentials
-#RUN sudo chown -R $newuser:$newuser .aws 
-
-RUN mkdir -p persistence/ \
-    touch persistence/neverquest.db
+RUN pip3 install --break-system-packages -r requirements.txt
 
 COPY main_account_server.py  .
 COPY configuration/secrets.json configuration/secrets.json
+COPY resources/account_resource.py resources/account_resource.py
 COPY persistence/account_repository.py persistence/account_repository.py
-COPY resources/ resources
+COPY persistence/scripts/ persistence/scripts/
 COPY services/account_service.py services/account_service.py
 COPY services/token_service.py services/token_service.py
 
 RUN sudo chown -R ${newuser}:${newuser} .
+
+RUN touch persistence/neverquest.db
 
 CMD ["python3", "-u", "main_account_server.py"]

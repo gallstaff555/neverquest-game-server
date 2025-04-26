@@ -1,11 +1,25 @@
 services:
-  neverquest-game-server:
+  game-server:
     image: neverquest-game-server:latest
+    depends_on:
+      - kafka
+      - redis
+      - zookeeper
     ports:
       - "5001:5001"
     container_name: game-server
 
-  neverquest-account-server:
+  world-server:
+    image: neverquest-world-server:latest
+    depends_on:
+      - kafka
+      - redis
+      - zookeeper
+    ports:
+      - "5002:5002"
+    container_name: world-server
+
+  account-server:
     image: neverquest-account-server:latest
     ports:
       - "8082:8082"
