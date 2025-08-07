@@ -4,6 +4,11 @@ import socketserver, json, time, threading, sys
 sys.path.append('../../..')
 from configuration.config import Config 
 from kafka import KafkaConsumer
+import logging
+logging.basicConfig(
+    format='[%(filename)s:%(lineno)d] %(message)s',
+    level=logging.INFO
+)
 
 cfg = Config()
 
@@ -24,11 +29,11 @@ class ConnectionService(socketserver.TCPServer):
 
         self.update_redis_thread = threading.Thread(target=self.update_redis, daemon=True)
         self.update_redis_thread.start()
-        print("Redis update thread started.")
+        logging.info("Redis update thread started.")
 
         self.update_npc_thread = threading.Thread(target=self.update_npcs, daemon=True)
         self.update_npc_thread.start()
-        print("npc update thread started.")
+        logging.info("npc update thread started.")
 
     def update_redis(self):
         update_timer = 1
@@ -52,14 +57,13 @@ class ConnectionService(socketserver.TCPServer):
                     'key': msg.key.decode('utf-8') if msg.key else None,
                     'value': msg.value.decode('utf-8') if msg.value else None
                 }
-
                 # TODO filter message by topic and partition when separating update by world zone
                 npc_id = json.loads(record_dict.get('value')).get('npc_id')
                 npc_value = record_dict.get('value')
-                print(npc_value)
+                logging.info(f"npc_value: {npc_value}")
                 self.npcs[npc_id] = npc_value
 
-                print(f"kafka msg count: {count}")
+                logging.info(f"kafka msg count: {count}")
 
             time.sleep(update_timer)
             
@@ -67,14 +71,14 @@ class ConnectionService(socketserver.TCPServer):
         for player in self.players_marked_for_deletion:
             if player in self.players:
                 del self.players[player]
-                print(f"{player} has been removed from the game.")
+                logging.info(f"{player} has been removed from the game.")
             else:
-                print(f"Player marked for deletion: {player} was not found!")
+                logging.info(f"Player marked for deletion: {player} was not found!")
             # TODO don't delete player, but mark them as offline
             self.r.delete(player)
-            print(f"{player} has been removed from redis cache.")
+            logging.info(f"{player} has been removed from redis cache.")
         self.players_marked_for_deletion = []
-        print(f"Remaining player count: {len(self.players)}")
+        logging.info(f"Remaining player count: {len(self.players)}")
     
 
 
@@ -84,13 +88,13 @@ class TCPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         raw_data = self.request.recv(2048).strip()
         if not raw_data:
-            print(f"Client {self.client_address} may have disconnected")
+            logging.info(f"Client {self.client_address} may have disconnected")
         else:
             decoded_data = raw_data.decode("utf-8").replace("'", "\"")
             payload = json.loads(decoded_data)
             header = payload['header']
             if header is None:
-                print("Error: no header provided.")
+                logging.info("Error: no header provided.")
             elif header == "update":
                 self.handle_update(payload)
             elif header == "disconnect":
@@ -98,7 +102,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
             elif header == "connect":
                 self.handle_connection(payload)
             else:
-                print("Error with message occurred.")
+                logging.info("Error with message occurred.")
 
             player_data = json.dumps(self.server.players)
             npc_data = json.dumps(self.server.npcs)
@@ -114,17 +118,17 @@ class TCPHandler(socketserver.BaseRequestHandler):
     def handle_connection(self, payload):
         player_name = f"{payload['name']}"
         if not player_name in self.server.players:
-            print(f"Player {player_name} connected for first time.")
+            logging.info(f"Player {player_name} connected for first time.")
         self.server.players[player_name] = payload
-        print(f"{player_name} connected!")
+        logging.info(f"{player_name} connected!")
 
     def handle_disconnect(self, payload):
         player_name = f"{payload['name']}"
-        print(f"Player {player_name} wants to disconnect...")
+        logging.info(f"Player {player_name} wants to disconnect...")
         if player_name in self.server.players:
             self.server.players_marked_for_deletion.append(player_name)
         else:
-            print(f"Could not find {player_name} in list of players.")
+            logging.info(f"Could not find {player_name} in list of players.")
         
     
     def handle_update(self, payload):
