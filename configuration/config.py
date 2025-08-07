@@ -7,12 +7,15 @@ class Config:
 
     TCP_HOST, TCP_PORT = "0.0.0.0", 5001
 
+
+    FRESHINSTALL = True
     TEST = True
-    DOCKER = True
+    DOCKER = False
+
 
     if DOCKER:
         REDIS_HOST, REDIS_PORT = 'redis', 6379
-        BOOTSTRAP_SERVER, BOOTSTRAP_PORT = 'kafka', 29092
+        BOOTSTRAP_SERVER, BOOTSTRAP_PORT = 'kafka', 9092 # TODO confirm if this should be 29092 for docker network
     else:
         REDIS_HOST, REDIS_PORT = 'localhost', 6379
         BOOTSTRAP_SERVER, BOOTSTRAP_PORT = 'localhost', 29092

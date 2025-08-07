@@ -1,12 +1,16 @@
 #!/usr/bin/env python3 
 
-import threading, time, json, sys, random
+import threading, time, json, sys
 sys.path.append('../../..')
 from configuration.config import Config 
 from .npc_factory import NPCFactory
 from kafka import KafkaProducer
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    format='[%(filename)s:%(lineno)d] %(message)s',
+    level=logging.INFO
+)
+
 
 # create NPC
 # update NPC position and status
@@ -17,16 +21,13 @@ logging.basicConfig(level=logging.INFO)
 cfg = Config()
 
 class NPCService(threading.Thread):
-    def __init__(self):
+    def __init__(self, redis, producer):
         super().__init__()
         self.factory = NPCFactory()
-        self.producer = KafkaProducer(
-            bootstrap_servers=f'{cfg.BOOTSTRAP_SERVER}:{cfg.BOOTSTRAP_PORT}'
-            #value_serializer=lambda v: json.dumps(v).encode('utf-8'),  # Serialize messages as JSON
-            #key_serializer=lambda k: str(k).encode('utf-8')  # Optional: Serialize the key (if needed)
-        )
+        self.producer = producer
         self.next_id = 1
         self.npc_list = []
+        self.redis = redis
 
     def create_npc(self, npc_class, start_coords):
         new_npc = self.factory.create_npc(npc_class, self.next_id, start_coords) 
@@ -47,7 +48,7 @@ class NPCService(threading.Thread):
         }
 
         try:
-            print(f"sending message to topic: {cfg.NPC_UPDATES_TOPIC}")
+            logging.info(f"sending message to topic: {cfg.NPC_UPDATES_TOPIC}")
             self.producer.send(
                 cfg.NPC_UPDATES_TOPIC,
                 key=str(cfg.KAFKA_PARTITION_1).encode('utf-8'),  
@@ -55,7 +56,7 @@ class NPCService(threading.Thread):
             )
             self.producer.flush()
         except Exception as e:
-            print(f"Kafka producer error: {e}")
+            logging.info(f"Kafka producer error: {e}")
         
 
     def setup(self):
@@ -65,6 +66,8 @@ class NPCService(threading.Thread):
     def run(self):
         self.setup()
         while(True):
+            
+            # Publish NPC data to topic only if NPC is_updated flag is true 
             for npc in self.npc_list:
                 if npc.is_updated:
                     try:
@@ -73,6 +76,13 @@ class NPCService(threading.Thread):
                         npc.is_updated = False
 
                     except Exception as e:
-                        print(f"Exception raised while publishing npc update in npc_service run: {e}")
+                        logging.info(f"Exception raised while publishing npc update in npc_service run: {e}")
+
+            # Iterate over players and NPCs and update NPCs in response to player movement or actions
+            for npc in self.npc_list:
+                for player in self.redis.scan_iter():
+                    npc.behavior.respond_to_player(player, self.redis.get(player))
+
+
             time.sleep(1)
         

@@ -3,6 +3,11 @@
 import threading, redis, time
 from services.connection_service import ConnectionService, TCPHandler
 from configuration.config import Config
+import logging
+logging.basicConfig(
+    format='[%(filename)s:%(lineno)d] %(message)s',
+    level=logging.INFO
+)
 
 cfg = Config()
 
@@ -15,12 +20,12 @@ class PersistentLocationThread(threading.Thread):
         while True:
             try:
                 time.sleep(2)
-                all_keys = r.keys('*')
-                for key in all_keys:
-                    print(f"{key} pos: {r.get(key)}")
+                for player in r.scan_iter():
+                    coords = r.get(player)
+                    logging.info(f"{player} pos: {coords}")
                 
             except Exception as e:
-                print(f"Exception raised: {e}")
+                logging.info(f"Exception raised: {e}")
                 
 
 if __name__ == "__main__":
@@ -29,22 +34,25 @@ if __name__ == "__main__":
     try:
         r = redis.Redis(host=cfg.REDIS_HOST, port=cfg.REDIS_PORT, db=0, decode_responses=True)
         if r.ping():
-            print(f"Redis is running.")
+            logging.info(f"Redis is running on main_game_server service.")
+        if cfg.FRESHINSTALL:
+            logging.info(f"Freshinstall is enabled. Wiping all existing data from redis.")
+            r.flushall()
     except:
-        print("Error connecting to redis.")
+        logging.info("Error connecting to redis.")
         #os.sys("exit") #sys.exit?
 
     try: 
         persistent_location_thread = PersistentLocationThread(r)
         persistent_location_thread.start()
-        print("Persistent location thread created.")
+        logging.info("Persistent location thread created.")
         
 
         player_thread = threading.Thread(target=ConnectionService((cfg.TCP_HOST, cfg.TCP_PORT), TCPHandler, r).serve_forever)
         player_thread.start()
-        print(f"Persistent player position thread created. Updating redis on port {cfg.REDIS_PORT}.")
-        print(f"Game server started on port {cfg.TCP_PORT}.")
+        logging.info(f"Persistent player position thread created. Updating redis on port {cfg.REDIS_PORT}.")
+        logging.info(f"Game server started on port {cfg.TCP_PORT}.")
     except Exception as e:
-        print(f"Error occured while initializing game server threads: {e}")
+        logging.info(f"Error occured while initializing game server threads: {e}")
 
     
