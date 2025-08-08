@@ -81,8 +81,15 @@ class NPCService(threading.Thread):
             # Iterate over players and NPCs and update NPCs in response to player movement or actions
             for npc in self.npc_list:
                 for player in self.redis.scan_iter():
-                    npc.behavior.respond_to_player(player, self.redis.get(player))
-
-
-            time.sleep(1)
+                    npc.behavior.run(player, self.redis.get(player))
+                
+                
+            # If current nearest player is not in redis, then this player must have disconnected and should be removed as nearest
+            for npc in self.npc_list:
+                nearest_player = npc.behavior.nearby_players.nearest_player
+                if (nearest_player is not None and not self.redis.exists(nearest_player)):
+                    logging.info(f"Player {nearest_player} may have disconnected and is no longer nearest to NPC: {npc.id}")
+                    npc.behavior.nearby_players.delete_player(nearest_player)
+            
+            time.sleep(.1)
         
