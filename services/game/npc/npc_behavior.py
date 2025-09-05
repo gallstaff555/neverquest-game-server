@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 
 
-import math, ast
+import math
 from services.game.npc.nearby_players import NearbyPlayers 
 import logging
 logging.basicConfig(
@@ -17,8 +17,8 @@ class NPCBehavior():
 
     # Determine player proximity; TODO use for aggro radius later
     def handle_player_nearby(self, my_location, player, player_data):
-        player_x, player_y = ast.literal_eval(player_data)
-        npc_x, npc_y = ast.literal_eval(my_location)
+        player_x, player_y = player_data
+        npc_x, npc_y = my_location
         sq_distance_from_player = self.get_squared_distance_to_player(player_x, player_y, npc_x, npc_y)
         if (sq_distance_from_player < self.sq_aggro_range):
             self.nearby_players.add_player(player, sq_distance_from_player, player_x, player_y)
