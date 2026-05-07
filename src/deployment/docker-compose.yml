@@ -1,0 +1,64 @@
+services:
+  session:
+    image: session:latest
+    depends_on:
+      - kafka
+      - redis
+      - zookeeper
+    ports:
+      - "5001:5001"
+    container_name: session
+
+  world:
+    image: world:latest
+    depends_on:
+      - kafka
+      - redis
+      - zookeeper
+    ports:
+      - "5002:5002"
+    container_name: world
+
+  authentication:
+    image: authentication:latest
+    ports:
+      - "8082:8082"
+    container_name: authentication
+    volumes:
+      - type: bind
+        source: ../services/authentication/persistence/neverquest.db 
+        target: /home/neverquest/persistence/neverquest.db
+
+  # TODO make npc service run in a container and test with kafka container. 
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    container_name: redis
+
+  # TODO set up max storage retention policy
+  kafka:
+    image: bitnami/kafka:3.9.0-debian-12-r9
+    ports:
+      - "29092:29092"
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      #- advertised.listeners=PLAINTEXT://localhost:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+    container_name: kafka
+  
+  zookeeper:
+    image: zookeeper:latest
+    ports: 
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    container_name: zookeeper

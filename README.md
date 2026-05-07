@@ -11,9 +11,14 @@ brew service start redis
 redis-cli ping
 
 # set up database
-# this also happens automatically when you run main_account_server.py
+(this also happens automatically when you run main_account_server.py)
 cd persistence/
 sqlite3 neverquest.db < scripts/create_tables.sql
+
+# service start order
+docker compose up -d kafka redis zookeeper
+./main_game_server.py
+./main_world_server.py
 
 # TODO
 Only send updated data when a change is detected, e.g. when a player or NPC moves 
