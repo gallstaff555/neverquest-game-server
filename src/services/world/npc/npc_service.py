@@ -1,0 +1,93 @@
+#!/usr/bin/env python3 
+
+import threading, time, json, sys, ast
+from configuration.config import Config 
+from .npc_factory import NPCFactory
+from kafka import KafkaProducer
+import logging
+
+cfg = Config()
+cfg.setup_logging()
+
+
+# create NPC
+# update NPC position and status
+# broadcast NPC location to client
+
+# TODO only update npc info when there is a change or addition
+
+cfg = Config()
+
+class NPCService(threading.Thread):
+    def __init__(self, redis, producer):
+        super().__init__()
+        self._factory = NPCFactory()
+        self._producer = producer
+        self._next_id = 1
+        self._npc_list = []
+        self._redis = redis
+
+    def create_npc(self, npc_class, start_coords):
+        new_npc = self._factory.create_npc(npc_class, self._next_id, start_coords) 
+        self._npc_list.append(new_npc)
+        self._next_id = self._next_id + 1
+
+    # TODO update topic if there is a change to NPC to send to client 
+    def publish_npc_update(self, npc_id, npc_class, location, race, flipped, moving, attacking):
+        payload = {
+            "npc_id": npc_id,
+            "timestamp": int(time.time()),
+            "npc_class": npc_class,
+            "race": race,
+            "pos": location,
+            "flipped": flipped,
+            "moving": moving,
+            "attacking": attacking
+        }
+
+        try:
+            logging.info(f"sending message to topic: {cfg.NPC_UPDATES_TOPIC}")
+            self._producer.send(
+                cfg.NPC_UPDATES_TOPIC,
+                key=str(cfg.KAFKA_PARTITION_1).encode('utf-8'),  
+                value=json.dumps(payload).encode('utf-8') 
+            )
+            self._producer.flush()
+        except Exception as e:
+            logging.info(f"Kafka producer error: {e}")
+        
+
+    def setup(self):
+        self.create_npc("healer", (150, 150))
+        self.create_npc("healer", (190, 190))
+
+    def run(self):
+        self.setup()
+        while(True):
+            
+            # Publish NPC data to topic only if NPC is_updated flag is true 
+            for npc in self._npc_list:
+                if npc.is_updated:
+                    try:
+                        self.publish_npc_update(npc.id, npc.npc_class, npc.location, 
+                                                npc.race, npc.flipped, npc.moving, npc.attacking)
+                        npc.is_updated = False
+
+                    except Exception as e:
+                        logging.info(f"Exception raised while publishing npc update in npc_service run: {e}")
+
+            # Iterate over players and NPCs and update NPCs in response to player movement or actions
+            for npc in self._npc_list:
+                for player in self._redis.scan_iter():
+                    npc.behavior.run(player, ast.literal_eval(self._redis.get(player)))
+                
+                
+            # If current nearest player is not in redis, then this player must have disconnected and should be removed as nearest
+            for npc in self._npc_list:
+                nearest_player = npc.behavior.nearby_players.nearest_player
+                if (nearest_player is not None and not self._redis.exists(nearest_player)):
+                    logging.info(f"Player {nearest_player} may have disconnected and is no longer nearest to NPC: {npc.id}")
+                    npc.behavior.nearby_players.delete_player(nearest_player)
+            
+            time.sleep(.1)
+        
